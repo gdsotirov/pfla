@@ -1,23 +1,37 @@
 #!/usr/bin/perl
 
+use Getopt::Long;
+$DEBUG = 1;
+$TEST  = 1;
+
 # ************************************************************************
 # *          ProFTPD Log Analyzer v0.01 by Georgi D. Sotirov             *
 # ************************************************************************
 # *   This PERL programm can analyze the proFTPD xferlog and to present  *
 # * the information in plain text or html format.                        *
 # ************************************************************************
-# * Date : Dec 12 2001 (12-12-2001)                                      *
+# * Date : Dec 17 2001 (17-12-2001)                                      *
 # ************************************************************************
 # * 2001 (c) Georgi Dimitrov Sotirov, <sotirov@bitex.com>                *
 # ************************************************************************
 
 # Identification values
-$GENERATOR    = "ProFTPD Log Analyzer v0.01";
+$GENERATOR    = "ProFTPD Log Analyzer (PFLA) v0.01";
 $GEN_HOMEPAGE = "ahost.com/pfla";
 $AUTHOR       = "Georgi D. Sotirov";
 $AEMAIL       = "sotirov\@bitex.com";
 
+$Version = '';
+
+GetOptions("version", \$Version);
+
+if ( $Version == 1 ) {
+    &version;
+    exit 0;
+} 
+
 # Used files
+# Note: Edit here if the files are in other places
 $systemlog  = "/var/log/proftpd.log";
 $xferlog    = "/var/log/xferlog";
 $templfile  = "./report.templ.html";
@@ -25,17 +39,32 @@ $outputfile = "./report.html";
 
 # Check the needed access to files
 if ( ! -r $systemlog ) {
-    die "Cannot read from proftpd log file $systemlog!\n";
+    die "$0: Error: Cannot read from proftpd log file $systemlog!\n";
 }
-if ( ! -r $xferlog ) {
-    die "Cannot read from xferlog file $xferlog!\n";
+
+push(@xferlogs, $xferlog);
+# Additional logs are collected in the xferlogs list, but only if not zero
+# in size - I mean '! -z' ;-)
+$logsufix = 1;
+for ( ;; ) {
+    $xferlogname = $xferlog.".".$logsufix;
+    if ( -e $xferlogname ) {
+        if ( ! -z $xferlogname ) {
+            push(@xferlogs, $xferlogname);
+        }
+        $logsufix++;
+    }
+    else {
+        last;        # exit from cycle - there is no more logs
+    }
 }
 
 if ( ! -r $templfile ) {
-    die "Cannot read from source file $templfile!\n";
+    die "$0: Error: Cannot read from source file $templfile!\n";
 }
 
 # Subroutines prototypes
+sub version;
 sub hrbytes;
 sub summaryrep;
 
@@ -171,6 +200,19 @@ if ( open(TEMPLFILE, $templfile) ) {
 
 close(OUTPUTFILE);
 close(TEMPLFILE);
+
+# ************************************************************************
+# * Subroutine: usage                                                    *
+# * Purpose   : Prints the programm usage information.                   *
+# * Modifyed  : Jan 14 2002                                              *
+# ************************************************************************
+
+sub version {
+    print "\n$GENERATOR\n";
+    print "Author: $AUTHOR <$AEMAIL>\n";
+    print "Please, visit $GEN_HOMEPAGE\n";
+    print "\n"; 
+}
 
 # ************************************************************************
 # * Subroutine: hrbytes                                                  *
