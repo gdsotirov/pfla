@@ -1,16 +1,10 @@
 #!/usr/bin/perl
 
-use Getopt::Long;
-$DEBUG = 1;
-$TEST  = 1;
-
 # ************************************************************************
 # *          ProFTPD Log Analyzer v0.02 by Georgi D. Sotirov             *
 # ************************************************************************
 # *   This PERL programm can analyze the proFTPD xferlog and to present  *
 # * the information in plain text or html format.                        *
-# ************************************************************************
-# * Date : Feb 07 2005 (07-02-2005)                                      *
 # ************************************************************************
 # * 2001 (c) Georgi Dimitrov Sotirov, <sotirov@bitex.com>                *
 # * 2005 (c) Georgi Dimitrov Sotirov, <gdsotirov@dir.bg>                 *
@@ -18,21 +12,11 @@ $TEST  = 1;
 
 # Identification values
 $GENERATOR    = "ProFTPD Log Analyzer (PFLA) v0.02";
-$GEN_HOMEPAGE = "ahost.com/pfla";
+$GEN_HOMEPAGE = "gsotirov458.ddns.homelan.bg";
 $AUTHOR       = "Georgi D. Sotirov";
 $AEMAIL       = "gdsotirov\@dir.bg";
 
-$Version = '';
-
-GetOptions("version", \$Version);
-
-if ( $Version == 1 ) {
-    &version;
-    exit 0;
-} 
-
 # Used files
-# Note: Edit here if the files are in other places
 $systemlog  = "/var/log/proftpd/proftpd.log";
 $xferlog    = "/var/log/proftpd/xferlog";
 $templfile  = "report.templ.html";
@@ -40,35 +24,17 @@ $outputfile = "/var/www/htdocs/pfla/report.html";
 
 # Check the needed access to files
 if ( ! -r $systemlog ) {
-    die "$0: Error: Cannot read from proftpd log file $systemlog!\n";
+    die "Cannot read from proftpd log file $systemlog!\n";
 }
-
-if ( ! -z $xferlog ) {
-    push(@xferlogs, $xferlog);
-}
-
-# Additional logs are collected in the xferlogs list, but only if not zero
-# in size - I mean '! -z' ;-)
-$logsufix = 1;
-for ( ;; ) {
-    $xferlogname = $xferlog.".".$logsufix;
-    if ( -e $xferlogname ) {
-        if ( ! -z $xferlogname ) {
-            push(@xferlogs, $xferlogname);
-        }
-        $logsufix++;
-    }
-    else {
-        last;        # exit from cycle - there is no more logs
-    }
+if ( ! -r $xferlog ) {
+    die "Cannot read from xferlog file $xferlog!\n";
 }
 
 if ( ! -r $templfile ) {
-    die "$0: Error: Cannot read from source file $templfile!\n";
+    die "Cannot read from source file $templfile!\n";
 }
 
 # Subroutines prototypes
-sub version;
 sub hrbytes;
 sub summaryrep;
 
@@ -96,71 +62,66 @@ $total_time      = 0;
 $hostname = `hostname`;
 chomp($hostname);
 
-{
-    my $firstlog = $xferlogs[@xferlogs-1];
-    $transf_first = `head -1 $firstlog`;
-    while ( length($transf_first) > 24 ) {
-        chop($transf_first);
-    }
+$transf_first = `head -1 $xferlog`;
+while ( length($transf_first) > 24 ) {
+    chop($transf_first);
 }
 
-$transf_last = `tail -1 $xferlogs[0]`;
+$transf_last = `tail -1 $xferlog`;
 while ( length($transf_last) > 24 ) {
     chop($transf_last);
 }
 
-foreach $XLOG (@xferlogs) {
-    open(XFERLOG, $XLOG);
 
-    while ( <XFERLOG> ) {
-        @VALS = split(/ +/, $_);
-        chomp(@VALS);
+open(XFERLOG, $xferlog);
 
-        $total_time += $VALS[5];
-        if ( $VALS[17] eq "c" ) {
-            if ( $VALS[11] ne "d" ) {
-                $total_transfer += $VALS[7];
-                $total_files++;
-                $total_compl++;
+while ( <XFERLOG> ) {
+    @VALS = split(/ +/, $_);
+    chomp(@VALS);
 
-                if ( $VALS[11] eq "o" ) {
-                    $total_outgoing += $VALS[7];
-                    $total_out_files++;
-                }
-                else {
-                    $total_incoming += $VALS[7];
-                    $total_in_files++;
-                }
+    $total_time += $VALS[5];
+    if ( $VALS[17] eq "c" ) {
+        if ( $VALS[11] ne "d" ) {
+            $total_transfer += $VALS[7];
+            $total_files++;
+            $total_compl++;
+            if ( $VALS[11] eq "o" ) {
+                $total_outgoing += $VALS[7];
+                $total_out_files++;
             }
-            else {
-                $total_del_files++;
+            else{
+                $total_incoming += $VALS[7];
+                $total_in_files++;
             }
         }
         else {
-            $total_incom++;
+            $total_del_files++;
         }
+    }
+    else {
+        $total_incom++;
+    }
 
-        if ( $VALS[9] eq "a" ) {
-            $total_ascii++;
-        }
-        elsif ( $VALS[9] eq "b" ) {
-            $total_binary++;
-        }
+    if ( $VALS[9] eq "a" ) {
+        $total_ascii++;
+    }
+    elsif ( $VALS[9] eq "b" ) {
+        $total_binary++;
+    }
 
-        # Transfers count for Anonymous/Guest/Real users
-        if ( $VALS[12] eq "a" ) {
-            $total_anon++;
-        }
-        elsif ( $VALS[12] eq "g" ) {
-            $total_guest++;
-        }
-        elsif ( $VALS[12] eq "r" ) {
-            $total_real++;
-        }
-    } # while
+    # Transfers count for Anonymous/Guest/Real users
+    if ( $VALS[12] eq "a" ) {
+        $total_anon++;
+    }
+    elsif ( $VALS[12] eq "g" ) {
+        $total_guest++;
+    }
+    elsif ( $VALS[12] eq "r" ) {
+        $total_real++;
+    }
+}
 
-    close(XFERLOG);
-} # foreach
+close(XFERLOG);
 
 $temp = &hrbytes($total_transfer);
 $total_transfer = sprintf("%s (%d B)", $temp, $total_transfer);
@@ -210,19 +171,6 @@ if ( open(TEMPLFILE, $templfile) ) {
 
 close(OUTPUTFILE);
 close(TEMPLFILE);
-
-# ************************************************************************
-# * Subroutine: usage                                                    *
-# * Purpose   : Prints the programm usage information.                   *
-# * Modifyed  : Jan 14 2002                                              *
-# ************************************************************************
-
-sub version {
-    print "\n$GENERATOR\n";
-    print "Author: $AUTHOR <$AEMAIL>\n";
-    print "Please, visit $GEN_HOMEPAGE\n";
-    print "\n"; 
-}
 
 # ************************************************************************
 # * Subroutine: hrbytes                                                  *
