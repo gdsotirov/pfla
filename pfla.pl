@@ -10,7 +10,7 @@ $TEST  = 1;
 # *   This PERL programm can analyze the proFTPD xferlog and to present  *
 # * the information in plain text or html format.                        *
 # ************************************************************************
-# * Date : Dec 17 2001 (17-12-2001)                                      *
+# * Date : Dec 18 2001 (18-12-2001)                                      *
 # ************************************************************************
 # * 2001 (c) Georgi Dimitrov Sotirov, <sotirov@bitex.com>                *
 # ************************************************************************
@@ -42,7 +42,10 @@ if ( ! -r $systemlog ) {
     die "$0: Error: Cannot read from proftpd log file $systemlog!\n";
 }
 
-push(@xferlogs, $xferlog);
+if ( ! -z $xferlog ) {
+    push(@xferlogs, $xferlog);
+}
+
 # Additional logs are collected in the xferlogs list, but only if not zero
 # in size - I mean '! -z' ;-)
 $logsufix = 1;
@@ -92,66 +95,72 @@ $total_time      = 0;
 $hostname = `hostname`;
 chomp($hostname);
 
-$transf_first = `head -1 $xferlog`;
-while ( length($transf_first) > 24 ) {
-    chop($transf_first);
+{
+    my $firstlog = $xferlogs[@xferlogs-1];
+    $transf_first = `head -1 $firstlog`;
+    while ( length($transf_first) > 24 ) {
+        chop($transf_first);
+    }
 }
 
-$transf_last = `tail -1 $xferlog`;
+$transf_last = `tail -1 $xferlogs[0]`;
 while ( length($transf_last) > 24 ) {
     chop($transf_last);
 }
 
+foreach $XLOG (@xferlogs) {
+    open(XFERLOG, $XLOG);
 
-open(XFERLOG, $xferlog);
+    while ( <XFERLOG> ) {
+        @VALS = split(/ +/, $_);
+        chomp(@VALS);
 
-while ( <XFERLOG> ) {
-    @VALS = split(/ +/, $_);
-    chomp(@VALS);
+        $total_time += $VALS[5];
+        if ( $VALS[17] eq "c" ) {
+            if ( $VALS[11] ne "d" ) {
+                $total_transfer += $VALS[7];
+                $total_files++;
+                $total_compl++;
 
-    $total_time += $VALS[5];
-    if ( $VALS[17] eq "c" ) {
-        if ( $VALS[11] ne "d" ) {
-            $total_transfer += $VALS[7];
-            $total_files++;
-            $total_compl++;
-            if ( $VALS[11] eq "o" ) {
-                $total_outgoing += $VALS[7];
-                $total_out_files++;
+                if ( $VALS[11] eq "o" ) {
+                    $total_outgoing += $VALS[7];
+                    $total_out_files++;
+                }
+                else {
+                    $total_incoming += $VALS[7];
+                    $total_in_files++;
+                }
+
+                if ( $VALS[9] eq "a" ) {
+                    $total_ascii++;
+                }
+                elsif ( $VALS[9] eq "b" ) {
+                    $total_binary++;
+                }
+
+                # Transfers count for Anonymous/Guest/Real users
+                if ( $VALS[12] eq "a" ) {
+                    $total_anon++;
+                }
+                elsif ( $VALS[12] eq "g" ) {
+                    $total_guest++;
+                }
+                elsif ( $VALS[12] eq "r" ) {
+                    $total_real++;
+                }
             }
             else {
-                $total_incoming += $VALS[7];
-                $total_in_files++;
+                $total_del_files++;
             }
         }
         else {
-            $total_del_files++;
+            $total_incom++;
         }
-    }
-    else {
-        $total_incom++;
-    }
 
-    if ( $VALS[9] eq "a" ) {
-        $total_ascii++;
-    }
-    elsif ( $VALS[9] eq "b" ) {
-        $total_binary++;
-    }
+    } # while
 
-    # Transfers count for Anonymous/Guest/Real users
-    if ( $VALS[12] eq "a" ) {
-        $total_anon++;
-    }
-    elsif ( $VALS[12] eq "g" ) {
-        $total_guest++;
-    }
-    elsif ( $VALS[12] eq "r" ) {
-        $total_real++;
-    }
-}
-
-close(XFERLOG);
+    close(XFERLOG);
+} # foreach
 
 $temp = &hrbytes($total_transfer);
 $total_transfer = sprintf("%s (%d B)", $temp, $total_transfer);
