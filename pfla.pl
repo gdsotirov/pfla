@@ -10,7 +10,7 @@ $TEST  = 1;
 # *   This PERL programm can analyze the proFTPD xferlog and to present  *
 # * the information in plain text or html format.                        *
 # ************************************************************************
-# * Date : Dec 18 2001 (18-12-2001)                                      *
+# * Date : Jun 08 2003 (08-06-2003)                                      *
 # ************************************************************************
 # * 2001 (c) Georgi Dimitrov Sotirov, <sotirov@bitex.com>                *
 # ************************************************************************
@@ -130,24 +130,6 @@ foreach $XLOG (@xferlogs) {
                     $total_incoming += $VALS[7];
                     $total_in_files++;
                 }
-
-                if ( $VALS[9] eq "a" ) {
-                    $total_ascii++;
-                }
-                elsif ( $VALS[9] eq "b" ) {
-                    $total_binary++;
-                }
-
-                # Transfers count for Anonymous/Guest/Real users
-                if ( $VALS[12] eq "a" ) {
-                    $total_anon++;
-                }
-                elsif ( $VALS[12] eq "g" ) {
-                    $total_guest++;
-                }
-                elsif ( $VALS[12] eq "r" ) {
-                    $total_real++;
-                }
             }
             else {
                 $total_del_files++;
@@ -157,6 +139,23 @@ foreach $XLOG (@xferlogs) {
             $total_incom++;
         }
 
+        if ( $VALS[9] eq "a" ) {
+            $total_ascii++;
+        }
+        elsif ( $VALS[9] eq "b" ) {
+            $total_binary++;
+        }
+
+        # Transfers count for Anonymous/Guest/Real users
+        if ( $VALS[12] eq "a" ) {
+            $total_anon++;
+        }
+        elsif ( $VALS[12] eq "g" ) {
+            $total_guest++;
+        }
+        elsif ( $VALS[12] eq "r" ) {
+            $total_real++;
+        }
     } # while
 
     close(XFERLOG);
