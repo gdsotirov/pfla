@@ -5,21 +5,22 @@ $DEBUG = 1;
 $TEST  = 1;
 
 # ************************************************************************
-# *          ProFTPD Log Analyzer v0.01 by Georgi D. Sotirov             *
+# *          ProFTPD Log Analyzer v0.02 by Georgi D. Sotirov             *
 # ************************************************************************
 # *   This PERL programm can analyze the proFTPD xferlog and to present  *
 # * the information in plain text or html format.                        *
 # ************************************************************************
-# * Date : Jun 08 2003 (08-06-2003)                                      *
+# * Date : Feb 07 2005 (07-02-2005)                                      *
 # ************************************************************************
 # * 2001 (c) Georgi Dimitrov Sotirov, <sotirov@bitex.com>                *
+# * 2005 (c) Georgi Dimitrov Sotirov, <gdsotirov@dir.bg>                 *
 # ************************************************************************
 
 # Identification values
-$GENERATOR    = "ProFTPD Log Analyzer (PFLA) v0.01";
+$GENERATOR    = "ProFTPD Log Analyzer (PFLA) v0.02";
 $GEN_HOMEPAGE = "ahost.com/pfla";
 $AUTHOR       = "Georgi D. Sotirov";
-$AEMAIL       = "sotirov\@bitex.com";
+$AEMAIL       = "gdsotirov\@dir.bg";
 
 $Version = '';
 
@@ -32,10 +33,10 @@ if ( $Version == 1 ) {
 
 # Used files
 # Note: Edit here if the files are in other places
-$systemlog  = "/var/log/proftpd.log";
-$xferlog    = "/var/log/xferlog";
-$templfile  = "./report.templ.html";
-$outputfile = "./report.html";
+$systemlog  = "/var/log/proftpd/proftpd.log";
+$xferlog    = "/var/log/proftpd/xferlog";
+$templfile  = "report.templ.html";
+$outputfile = "/var/www/htdocs/pfla/report.html";
 
 # Check the needed access to files
 if ( ! -r $systemlog ) {
@@ -177,6 +178,7 @@ $gen_date = localtime;
 
 if ( open(TEMPLFILE, $templfile) ) {
     while ( <TEMPLFILE> ) {
+        s/\$generator/$GENERATOR/gi;
         s/\$hostname/$hostname/gi;
         s/\$gen_date/$gen_date/gi;
         s/\$transf_first/$transf_first/gi;
