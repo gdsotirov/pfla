@@ -6,6 +6,7 @@ and generating summarized report for all containing:
   * in/out/deleted files counts;
   * transfer type binary/ASCII counts;
   * user type counts.
+
 The report template could be customized, but variables (starting with dollar
 sign) must be kept, so the script could replace them with data.
 
