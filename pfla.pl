@@ -5,22 +5,21 @@ $DEBUG = 1;
 $TEST  = 1;
 
 # ************************************************************************
-# *          ProFTPD Log Analyzer v0.02 by Georgi D. Sotirov             *
+# *          ProFTPD Log Analyzer v0.03 by Georgi D. Sotirov             *
 # ************************************************************************
 # *   This PERL programm can analyze the proFTPD xferlog and to present  *
 # * the information in plain text or html format.                        *
 # ************************************************************************
-# * Date : Feb 07 2005 (07-02-2005)                                      *
+# * Date : Nov 09 2020 (2020-11-09)                                      *
 # ************************************************************************
-# * 2001 (c) Georgi Dimitrov Sotirov, <sotirov@bitex.com>                *
-# * 2005 (c) Georgi Dimitrov Sotirov, <gdsotirov@dir.bg>                 *
+# * 2001-2020 (c) Georgi Dimitrov Sotirov, <gdsotirov@gmail.com>         *
 # ************************************************************************
 
 # Identification values
-$GENERATOR    = "ProFTPD Log Analyzer (PFLA) v0.02";
-$GEN_HOMEPAGE = "ahost.com/pfla";
+$GENERATOR    = "ProFTPD Log Analyzer (PFLA) v0.03";
+$GEN_HOMEPAGE = "https://github.com/gdsotirov/pfla";
 $AUTHOR       = "Georgi D. Sotirov";
-$AEMAIL       = "gdsotirov\@dir.bg";
+$AEMAIL       = "gdsotirov\@gmail.com";
 
 $Version = '';
 
@@ -214,7 +213,7 @@ close(TEMPLFILE);
 # ************************************************************************
 # * Subroutine: usage                                                    *
 # * Purpose   : Prints the programm usage information.                   *
-# * Modifyed  : Jan 14 2002                                              *
+# * Modified  : Jan 14 2002                                              *
 # ************************************************************************
 
 sub version {
@@ -228,7 +227,7 @@ sub version {
 # * Subroutine: hrbytes                                                  *
 # * Purpose   : Represents a value in bytes to a human readable string,  *
 # *             e.g. 12345 B = 12.05 KB.                                 *
-# * Modifyed  : Jan 4 2002                                               *
+# * Modified  : Jan 4 2002                                               *
 # ************************************************************************
 
 sub hrbytes {
@@ -247,7 +246,7 @@ sub hrbytes {
 # * Subroutine: hrtime                                                   *
 # * Purpose   : Represents a value in seconds to a human readable time,  *
 # *             e.g. 3669 seconds = 1h 1m 9s.                            *
-# * Modifyed  : Jan 6 2002                                               *
+# * Modified  : Jan 6 2002                                               *
 # ************************************************************************
 
 sub hrtime {
@@ -262,7 +261,7 @@ sub hrtime {
         $mins++;
         $secs -= 60;
     }
-    
+
     if ( $mins != 0 ) {
         if ( $hrs != 0 ) {
             return sprintf("%dh %dm %ds (%d s)", $hrs, $mins, $secs, $seconds);
