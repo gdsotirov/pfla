@@ -1,8 +1,6 @@
 #!/usr/bin/perl
 
 use Getopt::Long;
-$DEBUG = 1;
-$TEST  = 1;
 
 # ************************************************************************
 # *          ProFTPD Log Analyzer v0.03 by Georgi D. Sotirov             *
@@ -96,6 +94,10 @@ $hostname = `hostname`;
 chomp($hostname);
 
 {
+    # The indexing here assumes that logs are rotated by logrotate, so
+    # xferlog.1 is the log previous to current xferlog and xferlog.2 is
+    # the log previous to xferlog.1 and so on. Above logs are read in
+    # sequential order.
     my $firstlog = $xferlogs[@xferlogs-1];
     $transf_first = `head -1 $firstlog`;
     while ( length($transf_first) > 24 ) {
